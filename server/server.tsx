@@ -1,10 +1,11 @@
 import express from "express";
-import path from "path";
 import fs from "fs";
+import path from "path";
 
-import { renderToString } from "react-dom/server";
-import App from "../client/components/app";
 import React from "react";
+import { renderToString } from "react-dom/server";
+import { StaticRouter } from "react-router-dom/server";
+import App from "../client/app";
 
 const server = express();
 
@@ -21,8 +22,12 @@ const manifest = fs.readFileSync(
 
 const assets = JSON.parse(manifest);
 
-server.get("/", (req, res) => {
-  const components = renderToString(React.createElement(App));
+server.get("*", (req, res) => {
+  const components = renderToString(
+    <StaticRouter location={req.url}>
+      <App />
+    </StaticRouter>
+  );
 
   res.render("client", { assets, components });
 });
