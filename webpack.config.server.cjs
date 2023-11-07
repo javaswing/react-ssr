@@ -2,6 +2,9 @@ const nodeExternals = require('webpack-node-externals')
 const CopyPlugin = require('copy-webpack-plugin')
 const path = require('path')
  
+/**
+ * @type import('webpack').Configuration
+ */
 module.exports = {
   name: 'server',
   entry: {
