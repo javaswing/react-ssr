@@ -1,13 +1,58 @@
-import { create } from "zustand";
-import { getPlayListById } from "./service";
+import {
+  PayloadAction,
+  combineReducers,
+  configureStore,
+  createAsyncThunk,
+  createSlice,
+} from "@reduxjs/toolkit";
+import { PlayListType, TrackType, getPlayListById } from "./service";
+import { useDispatch } from "react-redux";
 
+export const getListById = createAsyncThunk(
+  "app/getPlayListById",
+  async (id: number, thunkAPI) => {
+    const response = await getPlayListById(id);    
+    return response.data;
+  }
+);
 
-const useListStore = create((set) => ({
-  list: {},
-  fetch: async () => {
-    const response = await getPlayListById();
-    set({ list: response });
+interface ListState {
+  entities: TrackType[];
+  loading: "idle" | "pending" | "succeeded" | "failed";
+}
+const initialState: ListState = {
+  entities: [],
+  loading: "idle",
+};
+
+const listSlice = createSlice({
+  name: "app",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(
+      getListById.fulfilled,
+      (
+        state,
+        action: PayloadAction<{
+          playlist: PlayListType;
+        }>
+      ) => {        
+        const tracks = action.payload.playlist.tracks;    
+        tracks && (state.entities = [...tracks]);
+      }
+    );
   },
-}));
+});
 
-export { useListStore };
+const store = configureStore({
+  reducer: combineReducers({ app: listSlice.reducer }),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+
+export type AppDispatch = typeof store.dispatch;
+
+export const useAppDispatch = () => useDispatch<typeof store.dispatch>();
+
+export default store;

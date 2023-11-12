@@ -4,8 +4,11 @@ import path from "path";
 
 import React from "react";
 import { renderToString } from "react-dom/server";
+import { matchRoutes } from "react-router-dom";
 import { StaticRouter } from "react-router-dom/server";
 import App from "../client/app";
+import routes from "../client/routes";
+import store from "../client/store";
 
 const server = express();
 
@@ -22,14 +25,29 @@ const manifest = fs.readFileSync(
 
 const assets = JSON.parse(manifest);
 
-server.get("*", (req, res) => {
-  const components = renderToString(
-    <StaticRouter location={req.url}>
-      <App />
-    </StaticRouter>
-  );
+server.get("*", async (req, res) => {
+  const matchedRoutes = matchRoutes(routes, req.path);
 
-  res.render("client", { assets, components });
+  const promises = matchedRoutes?.map((item) => {
+    // @ts-ignore
+    if (item.route?.Component?.getInitialData) {
+      // @ts-ignore
+      return item.route?.Component?.getInitialData(store);
+    }
+  });
+
+  // @ts-ignore
+  Promise.allSettled(promises).then((results) => {
+    console.log(results);
+
+    const components = renderToString(
+      <StaticRouter location={req.url}>
+        <App />
+      </StaticRouter>
+    );
+
+    res.render("client", { assets, components });
+  });
 });
 
 server.listen(3000, () => {
