@@ -27,26 +27,23 @@ const assets = JSON.parse(manifest);
 
 server.get("*", async (req, res) => {
   const matchedRoutes = matchRoutes(routes, req.path);
-
   const promises = matchedRoutes?.map((item) => {
     // @ts-ignore
-    if (item.route?.Component?.getInitialData) {
+    if (item.route?.element.type?.getInitialData) {
       // @ts-ignore
-      return item.route?.Component?.getInitialData(store);
+      return item.route?.element.type?.getInitialData(store);
     }
   });
 
   // @ts-ignore
   Promise.allSettled(promises).then((results) => {
-    console.log(results);
-
     const components = renderToString(
       <StaticRouter location={req.url}>
         <App />
       </StaticRouter>
     );
 
-    res.render("client", { assets, components });
+    res.render("client", { assets, components, store });
   });
 });
 

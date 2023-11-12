@@ -46,6 +46,8 @@ const listSlice = createSlice({
 });
 
 const store = configureStore({
+  // @ts-ignore
+  preloadedState: typeof window !== 'undefined' && window.INITIAL_STATE,
   reducer: combineReducers({ app: listSlice.reducer }),
 });
 

@@ -6,11 +6,11 @@ import React from "react";
 const routes: RouteObject[] = [
   {
     path: "/",
-    Component: Home,
+    element: <Home />,
   },
   {
     path: "/list",
-    Component: List,
+    element: <List />,
   },
 ];
 

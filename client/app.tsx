@@ -1,16 +1,16 @@
 import React from "react";
 import { Provider } from "react-redux";
 import { Route, Routes } from "react-router-dom";
-import Home from "./components/home";
-import List from "./components/list";
+import routes from "./routes";
 import store from "./store";
 
 function App() {
   return (
     <Provider store={store}>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/list" element={<List />} />
+        {routes.map((r) => {
+          return <Route key={r.path} path={r.path} element={r.element} />;
+        })}
       </Routes>
     </Provider>
   );
