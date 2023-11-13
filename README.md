@@ -2,6 +2,12 @@
 
 React SSR 学习项目
 
+技术栈：
+
+1. react `^18.2.0`
+2. react-router-dom `^6.18.0`
+3. zustand `^4.4.6`
+
 ## 参考
 
 1. https://nils-mehlhorn.de/posts/typescript-nodejs-react-ssr/
