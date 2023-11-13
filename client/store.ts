@@ -1,60 +1,40 @@
-import {
-  PayloadAction,
-  combineReducers,
-  configureStore,
-  createAsyncThunk,
-  createSlice,
-} from "@reduxjs/toolkit";
-import { PlayListType, TrackType, getPlayListById } from "./service";
-import { useDispatch } from "react-redux";
+import { createStore, useStore as useZustandStore } from "zustand";
+import { getPlayListById, type TrackType } from "./service";
+import { createContext } from "react";
+import { useContext } from "react";
 
-export const getListById = createAsyncThunk(
-  "app/getPlayListById",
-  async (id: number, thunkAPI) => {
-    const response = await getPlayListById(id);    
-    return response.data;
-  }
-);
-
-interface ListState {
-  entities: TrackType[];
-  loading: "idle" | "pending" | "succeeded" | "failed";
+export interface StoreInterface {
+  list: TrackType[];
+  fetch: () => Promise<void>;
 }
-const initialState: ListState = {
-  entities: [],
-  loading: "idle",
+
+const getDefaultInitialState = () => ({
+  list: [],
+});
+
+export type StoreType = ReturnType<typeof initializeStore>;
+
+const zustandContext = createContext<StoreType | null>(null);
+
+export const Provider = zustandContext.Provider;
+
+export const useStore = <T>(selector: (state: StoreInterface) => T) => {
+  const store = useContext(zustandContext);
+
+  if (!store) throw new Error("Store is missing the provider");
+  return useZustandStore(store, selector);
 };
 
-const listSlice = createSlice({
-  name: "app",
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(
-      getListById.fulfilled,
-      (
-        state,
-        action: PayloadAction<{
-          playlist: PlayListType;
-        }>
-      ) => {        
-        const tracks = action.payload.playlist.tracks;    
-        tracks && (state.entities = [...tracks]);
-      }
-    );
-  },
-});
-
-const store = configureStore({
-  // @ts-ignore
-  preloadedState: typeof window !== 'undefined' && window.INITIAL_STATE,
-  reducer: combineReducers({ app: listSlice.reducer }),
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-
-export type AppDispatch = typeof store.dispatch;
-
-export const useAppDispatch = () => useDispatch<typeof store.dispatch>();
-
-export default store;
+export const initializeStore = (
+  preloadedState: Partial<StoreInterface> = {}
+) => {
+  return createStore<StoreInterface>((set, get) => ({
+    ...getDefaultInitialState(),
+    ...preloadedState,
+    fetch: async () => {
+      const response = await getPlayListById();
+      const tracks = response.data.playlist.tracks;      
+      set((state) => (state.list = tracks));
+    },
+  }));
+};

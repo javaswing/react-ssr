@@ -1,16 +1,14 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { RootState, getListById } from "../store";
+import { PageType } from "../../types";
+import { StoreInterface, StoreType, initializeStore, useStore } from "../store";
 
-const List = () => {
-  // const dispatch = useAppDispatch();
-  const list = useSelector((state: RootState) => state.app.entities);
-
-  // 在ssr同构应用中 useEffect这个hook并不能在服务端渲染的时候被调用
-  // useEffect(() => {
-  //   dispatch(getListById(24381616));
-  // }, []);
+const List: PageType<{
+  props: {
+    initialZustandState: StoreInterface;
+  };
+}> = () => {
+  const list = useStore((s) => s.list);
 
   return (
     <div>
@@ -23,10 +21,10 @@ const List = () => {
       <p></p>
       <h1>这是列表页面：歌单详情</h1>
       <ul>
-        {list.map((item) => (
+        {list?.map((item) => (
           <li key={item.id}>
             <img
-              src={item.al?.picUrl}
+              src={item.al?.picUrl + "?param=140y140"}
               style={{ width: "100px", height: "100px", background: "#ccc" }}
             ></img>
             <h4>{item.name}</h4>
@@ -38,8 +36,13 @@ const List = () => {
 };
 
 // 服务端调用
-List.getInitialData = async (store: any) => {
-  return store.dispatch(getListById(24381616));
+List.getInitialProps = async (store: StoreType) => {
+  await store.getState().fetch();
+  return {
+    props: {
+      initialZustandState: JSON.parse(JSON.stringify(store.getState())),
+    },
+  };
 };
 
 export default List;

@@ -1,18 +1,22 @@
 import React from "react";
-import { Provider } from "react-redux";
 import { Route, Routes } from "react-router-dom";
+import StoreProvider from "./StoreProvider";
 import routes from "./routes";
-import store from "./store";
+import { StoreInterface } from "./store";
 
-function App() {
+export type PageProps = {
+  initialZustandState: StoreInterface;
+};
+
+function App({ initialZustandState }: PageProps) {
   return (
-    <Provider store={store}>
+    <StoreProvider store={initialZustandState}>
       <Routes>
         {routes.map((r) => {
-          return <Route key={r.path} path={r.path} element={r.element} />;
+          return <Route key={r.path} path={r.path} Component={r.Component} />;
         })}
       </Routes>
-    </Provider>
+    </StoreProvider>
   );
 }
 

@@ -1,16 +1,20 @@
 import { RouteObject } from "react-router-dom";
+import { PageType } from "../types";
 import Home from "./components/home";
 import List from "./components/list";
-import React from "react";
 
-const routes: RouteObject[] = [
+type RouteObj = RouteObject & {
+  Component?: PageType | null;
+};
+
+const routes: RouteObj[] = [
   {
     path: "/",
-    element: <Home />,
+    Component: Home,
   },
   {
     path: "/list",
-    element: <List />,
+    Component: List,
   },
 ];
 

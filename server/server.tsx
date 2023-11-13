@@ -8,7 +8,7 @@ import { matchRoutes } from "react-router-dom";
 import { StaticRouter } from "react-router-dom/server";
 import App from "../client/app";
 import routes from "../client/routes";
-import store from "../client/store";
+import { initializeStore } from "../client/store";
 
 const server = express();
 
@@ -27,24 +27,25 @@ const assets = JSON.parse(manifest);
 
 server.get("*", async (req, res) => {
   const matchedRoutes = matchRoutes(routes, req.path);
+
+  const store = initializeStore();
+  // https://github.com/htdangkhoa/react-ssr-starter/blob/main/src/server/render/index.js#L56
   const promises = matchedRoutes?.map((item) => {
-    // @ts-ignore
-    if (item.route?.element.type?.getInitialData) {
-      // @ts-ignore
-      return item.route?.element.type?.getInitialData(store);
+    if (item.route?.Component?.getInitialProps) {
+      return item.route?.Component?.getInitialProps(store);
     }
   });
 
-  // @ts-ignore
-  Promise.allSettled(promises).then((results) => {
-    const components = renderToString(
-      <StaticRouter location={req.url}>
-        <App />
-      </StaticRouter>
-    );
+  promises &&
+    Promise.all(promises).then(() => {
+      const components = renderToString(
+        <StaticRouter location={req.url}>
+          <App initialZustandState={store.getState()} />
+        </StaticRouter>
+      );
 
-    res.render("client", { assets, components, store });
-  });
+      res.render("client", { assets, components, store: store.getState() });
+    });
 });
 
 server.listen(3000, () => {
