@@ -6,6 +6,7 @@
   </head>
   <body>
     <div id="root"><%- components %></div>
+    <script>window.__INITIAL_STATE__ = <%-JSON.stringify(store)%></script>  
     <script defer="defer" src="<%= assets["client.js"] %>"></script>
   </body>
 </html>
